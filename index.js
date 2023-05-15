@@ -4,55 +4,70 @@ const port = 3000
 const app = express()
 app.use(express.json())
 
-const users = []
+const clients = []
 
 const checkUserId = (request, response, next) => {
     const { id } = request.params
     
-    const index = users.findIndex(user => user.id === id)
+    const index = clients.findIndex(client => client.id === id)
 
     if(index < 0){
         return response.status(404).json({ error: "User not found"})
     }
 
-    request.userIndex = index
-    request.userId = id
+    request.clientIndex = index
+    request.clientId = id
 
     next()
 }
 
-app.get('/users', (request, response) => {
+app.get('/order', (request, response) => {
     
-    return response.json(users)
+    return response.json(clients)
 }) 
 
-app.post('/users', (request, response) => {
-    const {name, age} = request.body
+app.get('/order/:id', checkUserId, (request, response) => {
+    const index = request.clientIndex
 
-    const user = {id:uuid.v4(), name:name, age:age}
-
-    users.push(user)
-
-    return response.status(201).json(user)
-}) 
-
-app.put('/users/:id', checkUserId ,(request, response) => {
-    const { name, age } = request.body
-    const index = request.userIndex
-    const id = request.userId
-
-    const updatedUser = { id, name, age }
-
-    users[index] = updatedUser
-
-
-    return response.json(updatedUser)
+    return response.json(clients[index])
 })
 
-app.delete('/users/:id', checkUserId, (request, response) => {
-    const index = request.userIndex
+app.post('/order', (request, response) => {
+    const {order, clienteName, price, status} = request.body
 
-    users.splice(index,1)
+    const client = {id:uuid.v4(), order, clienteName, price, status}
+
+    clients.push(client)
+
+    return response.status(201).json(client)
+}) 
+
+app.put('/order/:id', checkUserId ,(request, response) => {
+    const { order, clienteName, price, status} = request.body
+    const index = request.clientIndex
+    const id = request.clientId
+
+    const updatedClient = { id, order, clienteName, price, status }
+    
+    clients[index] = updatedClient
+
+    return response.json(updatedClient)
+})
+
+app.patch('/order/:id', checkUserId,(request, response) => {
+    const index = request.clientIndex
+
+    console.log(clients[index])
+
+    clients[index].status = "Pronto";
+
+    return response.json(clients[index])
+})
+
+app.delete('/order/:id', checkUserId, (request, response) => {
+    const index = request.clientIndex
+
+    clients.splice(index,1)
 
     return response.status(204).json()
 })
